@@ -2,7 +2,7 @@ from pathlib import Path
 import chromadb
 from chromadb.config import Settings
 from sentence_transformers import SentenceTransformer
-import httpx
+from chat_api import complete_chat
 
 ROOT = Path(__file__).resolve().parent
 
@@ -85,7 +85,6 @@ print(context)
 
 # 7. 准备包含参考资料和问题的消息
 payload = {
-    "model": "huihui-qwen3.5-4b-abliterated-local",
     "messages": [
         {
             "role": "system",
@@ -105,19 +104,10 @@ payload = {
     "max_tokens": 256,
     "temperature": 0.0,
     "stream": False,
-    "chat_template_kwargs": {"enable_thinking": False},
 }
 
-# 8. 调用本地 Huihui
-with httpx.Client(trust_env=False, timeout=180.0) as http_client:
-    response = http_client.post(
-        "http://127.0.0.1:8081/v1/chat/completions",
-        json=payload,
-    )
-    response.raise_for_status()
-    data = response.json()
-
-answer = data["choices"][0]["message"]["content"]
+# 8. 调用配置的 OpenAI 兼容对话接口
+answer = complete_chat(payload)
 
 print("\n模型回答：")
 print(answer)
